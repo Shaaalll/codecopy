@@ -1,0 +1,75 @@
+import sys
+import time
+import Rpi.GPIO as GPIO
+
+sleeptime = 1
+x = 0
+
+
+ENA = 12
+ENB = 18
+TACHO1 = 7
+TACHO2 = 1
+LN1 = 27
+LN2 = 22
+LN3 = 23
+LN4 = 24
+Echo = 20
+Trigger = 21
+
+servo = GPIO.PWM(27, 50)
+servo.start(0)
+
+GPIO.cleanup()
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(LN1, GPIO.OUT)
+GPIO.setup(LN2, GPIO.OUT)
+GPIO.setup(LN3, GPIO.OUT)
+GPIO.setup(LN4, GPIO.OUT)
+GPIO.setup(ENA, GPIO.OUT)
+GPIO.setup(ENB, GPIO.OUT)
+GPIO.setup(Trigger, GPIO.OUT)
+GPIO.setup(Echo, GPIO.IN)
+GPIO.setup(TACHO1, GPIO.IN)
+GPIO.setup(TACHO2, GPIO.IN)
+
+
+def distance():
+    GPIO.output(Trigger, True)
+    time.sleep(0.00001)
+    GPIO.output(Trigger, False)
+
+    StartTime = time.time()
+    StopTime = time.time()
+    while GPIO.input(Echo) == 0:
+        StartTime = time.time()
+    while GPIO.input(Echo) == 1:
+        StopTime = time.time()
+    TimeElapsed = StopTime - StartTime
+    distance = (TimeElapsed * 34300) / 2
+
+    return distance
+
+def forward():
+    GPIO.output(LN3, GPIO.out)
+
+
+def servoleft():
+    servo.ChangeDutyCycle(1)
+    time.sleep(0.5)
+
+def servoright():
+    servo.ChangeDutyCycle(-1)
+    time.sleep(0.5)
+
+
+while True:
+
+    if distance < 25 :
+        servoright(1)
+        forward(5)
+    elif 40 < distance < 25 :
+        forward(5)
+    else :
+        servoleft(1)
+        forward(5)
